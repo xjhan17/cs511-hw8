@@ -3,7 +3,8 @@ import sys
 import numpy as np
 import ast
 import json
-# max cut
+# weighted stability
+
 
 # get input from either input txt file or script
 # format in input file: 
@@ -27,7 +28,6 @@ else:
      			[0, 4, 2, 0, 1], \
      			[8, 3, 6, 1, 0]]
 
-
 def main():
 	s = Optimize()
 	constraint = []
@@ -43,21 +43,28 @@ def main():
 	else:
 		print('False, error to solve the problem!')
 
+# setting up objective function
 def objectiveFunction():
 	function = 0
+	for i, weights in enumerate(weight):
+		if weights > 0:
+			function += weights * Int('x_%s' % (i+1))
+
+	panalty = 0
 	for i, lists in enumerate(capacity):
 		for j, capacity_ij in enumerate(lists):
 			if j >= i and capacity_ij > 0:
-				function += capacity_ij * (Int('x_%s' % (i+1)) * Int('-x_%s' % (j+1)) + Int('-x_%s' % (i+1)) *
-                            Int('x_%s' % (j+1)))
+				panalty += capacity_ij * Int('x_%s' % (i+1)) * Int('x_%s' % (j+1))
+	panalty *= (max(weight)+1)
+	function -= panalty
+	
+
 	return function
 
-# setting up constraints: variables can only assume values 0 or 1, and the sum of x and Bar x is 1
+# setting up constraints: variables can only assume values 0 or 1
 def constraints(constraint):
 	for i, x in enumerate(weight):
 		constraint.append(Or(Int('x_' + str(i+1)) == 1, Int('x_' + str(i+1)) == 0))
-		constraint.append(Or(Int('-x_' + str(i+1)) == 1, Int('-x_' + str(i+1)) == 0))
-		constraint.append(Int('x_' + str(i+1)) + Int('-x_' + str(i+1)) == 1)
 
 
 if __name__== "__main__":
